@@ -7,7 +7,7 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Recommendations', href: '#' },
+    { name: 'Recommendations', href: '/recommendations' },
     { name: 'Add Recommendation', href: '/add' },
     { name: 'About', href: '#' },
   ];
