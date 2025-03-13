@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 
 interface Category {
   id: string;
@@ -89,11 +90,12 @@ export default function RecommendationsList() {
           className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
         >
           {recommendation.imageUrl && (
-            <div className="aspect-video w-full overflow-hidden">
-              <img
+            <div className="aspect-video w-full overflow-hidden relative">
+              <Image
                 src={recommendation.imageUrl}
                 alt={recommendation.title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
           )}
@@ -238,7 +240,7 @@ export default function RecommendationsList() {
 
       {filteredRecommendations.length === 0 && searchQuery ? (
         <div className="flex justify-center items-center min-h-[200px]">
-          <div className="text-gray-500">No recommendations found matching "{searchQuery}"</div>
+          <div className="text-gray-500">No recommendations found matching &quot;{searchQuery}&quot;</div>
         </div>
       ) : viewMode === 'grid' ? (
         renderGridView(filteredRecommendations)
