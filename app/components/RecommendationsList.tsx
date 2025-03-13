@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface Category {
   id: string;
@@ -23,6 +23,7 @@ export default function RecommendationsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -43,6 +44,18 @@ export default function RecommendationsList() {
 
     fetchRecommendations();
   }, []);
+
+  const filteredRecommendations = useMemo(() => {
+    if (!searchQuery.trim()) return recommendations;
+
+    const query = searchQuery.toLowerCase();
+    return recommendations.filter((rec) => 
+      rec.title.toLowerCase().includes(query) ||
+      rec.description.toLowerCase().includes(query) ||
+      rec.address.toLowerCase().includes(query) ||
+      rec.category.name.toLowerCase().includes(query)
+    );
+  }, [recommendations, searchQuery]);
 
   if (loading) {
     return (
@@ -68,7 +81,7 @@ export default function RecommendationsList() {
     );
   }
 
-  const renderGridView = () => (
+  const renderGridView = (recommendations: Recommendation[]) => (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {recommendations.map((recommendation) => (
         <div
@@ -115,21 +128,21 @@ export default function RecommendationsList() {
     </div>
   );
 
-  const renderTableView = () => (
+  const renderTableView = (recommendations: Recommendation[]) => (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" className="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Title
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Category
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" className="w-1/4 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Address
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -137,7 +150,7 @@ export default function RecommendationsList() {
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {recommendations.map((recommendation) => (
             <tr key={recommendation.id}>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="w-2/5 px-6 py-4">
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                   {recommendation.title}
                 </div>
@@ -145,15 +158,15 @@ export default function RecommendationsList() {
                   {recommendation.description}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="w-1/5 px-6 py-4">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
                   {recommendation.category.name}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="w-1/4 px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                 {recommendation.address}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <td className="w-1/6 px-6 py-4 text-sm">
                 {recommendation.website && (
                   <a
                     href={recommendation.website}
@@ -174,7 +187,27 @@ export default function RecommendationsList() {
 
   return (
     <div>
-      <div className="flex justify-end mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="relative w-full sm:w-96">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search recommendations..."
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setViewMode('grid')}
@@ -203,7 +236,15 @@ export default function RecommendationsList() {
         </div>
       </div>
 
-      {viewMode === 'grid' ? renderGridView() : renderTableView()}
+      {filteredRecommendations.length === 0 && searchQuery ? (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="text-gray-500">No recommendations found matching "{searchQuery}"</div>
+        </div>
+      ) : viewMode === 'grid' ? (
+        renderGridView(filteredRecommendations)
+      ) : (
+        renderTableView(filteredRecommendations)
+      )}
     </div>
   );
 } 
